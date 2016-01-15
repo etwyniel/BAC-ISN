@@ -1,0 +1,101 @@
+body {
+	background-color: #008CBA;
+	font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+	text-align: left;
+}
+
+h1 {
+	text-align: center;
+	font-size: 5em;
+	border: 3px dashed blue;
+	border-radius: 40%;
+	width: 6em;
+	height: 1.5em;
+	margin: auto;
+	background-image: url(https://saddahaq.blob.core.windows.net/multimedia/16112181-flags-of-the-world.jpg);
+	background-position: center;
+	background-color: white;
+	background-size: 1.5em;
+	background-repeat: no-repeat
+}
+
+h2 {
+	font-size: 1.5em;
+	text-align: center;
+	text-decoration: underline
+}
+
+#main {
+	width: 75%;
+	height: 100%;
+	background-color: white;
+	margin: auto;
+	border-left: 3px solid black;
+	border-right: 3px solid black;
+	border-radius: 2px;
+	position: relative;
+}
+
+#main h3 {
+	font-family: Tahoma;
+	display: inline-block
+}
+
+#main p {
+	display: inline-block
+}
+
+#links {
+	background-color: #071B21;
+	border: 1px solid #071B21;
+	text-align: center;
+	border-radius: 3px;
+	color: white;
+	width: 70%;
+	margin: auto
+}
+
+body p a:link {
+	color: white;
+	font-size: 1.2em;
+	text-decoration: none;
+}
+
+body p a:visited {
+	color: white
+}
+
+body p a:hover {
+	color: red;
+	font-style: italic
+}
+
+.wrap {
+	background-color: #AAAAAA;
+	border: 3px solid blue;
+	border-radius: 2px;
+	margin: auto;
+	border-spacing: 2px;
+	width: 11em
+}
+
+#side {
+	display: inline-block;
+	border-left: 5px solid #071B21;
+	border-radius: 10px;
+	background-color: gray;
+	margin-left: 5.5em;
+	position: relative;
+	top: -18em;
+	left: -2.2em
+}
+
+form {
+	width: 10em
+}
+
+h6 {
+	text-align: center;
+	position: relative;
+	bottom: -5em
+}
