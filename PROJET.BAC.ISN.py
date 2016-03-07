@@ -219,7 +219,7 @@ try:
             system("cls")
             print("Merci d'entrer un choix valide")
     system("cls")
-                      
+#Gestion des erreurs                      
 except FileNotFoundError:
     print("Ce fichier n'existe pas. Veuillez entrer le nom d'un fichier .ppm (sans extension)")
 except ValueError:
