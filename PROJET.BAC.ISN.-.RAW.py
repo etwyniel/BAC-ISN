@@ -83,7 +83,7 @@ def steg_decode(file):
 
     #On crée un nouveau fichier dans lequel on écrit l'en-tête
     new_filename = file.split('.')[0] + ' - decoded.ppm'
-    header(new_filename, [dim[0] * 2, dim[1]])
+    header(new_filename, [int(dim[0] / 2), dim[1]])
     #On rouvre le fichier en mode 'ab' pour pouvoir ajouter de données à la suite de l'en-tête
     image = open(new_filename, 'ab')
 
