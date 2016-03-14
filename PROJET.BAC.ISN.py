@@ -4,6 +4,7 @@ from os import system
 from tkinter import *
 from threading import Thread
 from math import log
+from PIL import Image
 
 
 def base4(n):
@@ -13,6 +14,24 @@ def base4(n):
         x = str(n % 4) + x
         n = int(n / 4)
     return x
+
+def image_to_list(file, base=16):
+    image = Image.open(file, 'r')
+    dim = image.size
+    data = image.load()
+    values = []
+    for line in range(dim[0]):
+        for column in range(dim[1]):
+            for p in range(3):
+                if base == 16:
+                    values.append(hex(data[line, column][p])[2:])
+                elif base == 10:
+                    values.append(data[line, column][p])
+                elif base == 4:
+                    values.append(base4(data[line, column][p]))
+                elif base == 2:
+                    values.append(bin(data[line, column][p])[2:])
+    return dim, values
 
 def ascii_ppm_to_list(file, base=16):
     #Initialisation de la variable:
