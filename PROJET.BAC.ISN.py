@@ -33,95 +33,6 @@ def image_to_list(file, base=16):
                     values.append(bin(data[line, column][p])[2:])
     return dim, values
 
-def ascii_ppm_to_list(file, base=16):
-    #Initialisation de la variable:
-    #Création de la variable image, qui permet de lire le code du fichier .ppm
-    image = open(file, "r")
-    #readline() lit les lignes à la suite, une à chaque itération
-    f = image.readline()
-    a = image.readline()
-    l = ""
-    h = ""
-    #On ignore les commentaires éventuels, et on stocke les dimensions dans  l et h
-    while a[0] == "#":
-        a = image.readline()
-    l = int(a.split(' ')[0])
-    h = int(a.split(' ')[1])
-    #On insère les dimensions dans la liste pixels
-    dim = [l, h]
-    image.readline()
-    values = []
-    #Cette boucle sépare les pixels en listes individuelles, contenues dans une une liste par ligne, selon les dimensions du fichier
-    if base == 16:
-        for d in range(l * h * 3):
-            a = int(image.readline())
-            values.append('0' * (4-len(hex(a))) + hex(a)[2:])
-    elif base == 10:
-        for d in range(l * h * 3):
-            values.append(int(image.readline()))
-    elif base == 4:
-        for d in range(l * h * 3):
-            a = int(image.readline())
-            values.append('0' * (4-len(base4(a))) + base4(a))
-    elif base == 2:
-        for d in range(l * h * 3):
-            a = int(image.readline())
-            values.append('0' * (10-len(bin(a))) + bin(a)[2:])
-    #Le fichier est fermé pour éviter la perte de données
-    image.close()
-
-    #La liste finale, de la forme [[x,y],[[[pix_aR,pix_aV,pix_aB],[pix_bR,pix_bV,pix_bB]],[[pix_cR,pix_cV,pix_cB],[pix_dR,pix_dV,pix_dB]],...]]
-    #                                     ^-------------------ligne 1-------------------^ ^-------------------ligne 2-------------------^
-    #est renvoyée comme résultat de la fonction
-    return dim, values
-
-def raw_ppm_to_list(file, base=16):
-    #On ouver le ficher .ppm en tant qu'objet binaire (en non pas comme une chaîne de caractères)
-    image = open(file, 'rb')
-    #on stocke toutes les données dans une variable
-    data = image.read()
-    #On ferme le fichier
-    image.close()
-    #On décode les deux premiers octets du fichier, qui représentent le format (ici, P6)
-    f = data[:2].decode()
-    #On ignore les éventuelles lignes de commentaires, qui commencent par '#', codé par la valeur 35.
-    i = 3
-    while data[i] == 35:
-                a = i
-                while data[a] not in [10, 13]:
-                        a+=1
-                i = a + 1
-
-    #On isole les dimensions de l'image, que l'on stocke dans un tableau
-    #Les dimensions sont juste après les commentaires, sont sur la même ligne, et sont suivies d'un saut de ligne (b'\n')
-    if f == 'P6':
-        dim = data[i:data.index(b'\n', i)].decode().split(' ')
-    else:
-        dim = data[i:data.index('\n', i)].split(' ')
-    #On convertit les chaînes de caractères obtenues en entiers pour pouvoir les utiliser plus tard
-    dim[0] = int(dim[0])
-    dim[1] = int(dim[1])
-
-    #On saute les dimensions et la valeur maximale
-    n = i
-    c = 0
-    while c < 2:                                                        #MODIFIER SI POSSIBLE
-                if chr(data[n]) == '\n':
-                        c += 1
-                n += 1
-    #Et on stocke les valeurs de tous les pixels dans un tableau sous forme hexadécimale (en rajoutant un 0 si la valeur est inférieure ou égale à 0xf)
-    if base == 16:
-        values = ['0' * (4-len(hex(d))) + hex(d)[2:] for d in data[n:]]
-    elif base == 10:
-        values = [int(d) for d in data[n:]]
-    elif base == 4:
-        values = ['0' * (4-len(base4(d))) + base4(d) for d in data[n:]]
-    elif base == 2:
-        values = ['0' * (10-len(bin(d))) + bin(d)[2:] for d in data[n:]]
-
-    #On revoie les dimensions et les pixels dans un tuple
-    return dim, values
-
 def header(file, dim, raw=True):
     if raw:
         #Ouvrir en "wb+" permet d'effacer le contenu du fichier avant d'y accéder en mode binaire
@@ -140,14 +51,7 @@ def header(file, dim, raw=True):
     image.close()
 
 def gray_levels(file, raw=True):
-    image = open(file, 'rb')
-    data = image.read()
-    image.close()
-    if data[1] == 51:
-        data = ascii_ppm_to_list(file, 10)
-    else:
-        #On récupère les dimensions de l'image ainsi que les valeurs de ses pixels
-        data = raw_ppm_to_list(file, 10)
+    data = imaeg_to_list(file, 10)
     dim = data[0]
     pixels = data[1]
 
@@ -175,14 +79,7 @@ def gray_levels(file, raw=True):
     image.close()
 
 def outline(file, raw=True):
-    image = open(file, 'rb')
-    data = image.read()
-    image.close()
-    if data[1] == 51:
-        data = ascii_ppm_to_list(file, 10)
-    else:
-        #On récupère les dimensions de l'image ainsi que les valeurs de ses pixels
-        data = raw_ppm_to_list(file, 10)
+    data = image_to_list(file, 10)
     dim = data[0]
     pixels = data[1]
 
@@ -223,14 +120,7 @@ def outline(file, raw=True):
     image.close()
 
 def embossage(file, raw=True):
-    image = open(file, 'rb')
-    data = image.read()
-    image.close()
-    if data[1] == 51:
-        data = ascii_ppm_to_list(file, 10)
-    else:
-        #On récupère les dimensions de l'image ainsi que les valeurs de ses pixels
-        data = raw_ppm_to_list(file, 10)
+    data = image_to_list(file, 10)
     dim = data[0]
     pixels = data[1]
 
@@ -271,14 +161,7 @@ def embossage(file, raw=True):
     image.close()
 
 def steg_encode(file, raw=True, base=16):
-    image = open(file, 'rb')
-    data = image.read()
-    image.close()
-    if data[1] == 51:
-        data = ascii_ppm_to_list(file, base)
-    else:
-        #On récupère les dimensions de l'image ainsi que les valeurs de ses pixels
-        data = raw_ppm_to_list(file, base)
+    data = image_to_list(file, base)
     dim = data[0]
     pixels = data[1]
 
@@ -321,14 +204,7 @@ def steg_encode(file, raw=True, base=16):
     image.close()
 
 def steg_decode(file, raw=True, base=16):
-    image = open(file, 'rb')
-    data = image.read()
-    image.close()
-    if data[1] == 51:
-        data = ascii_ppm_to_list(file, base)
-    else:
-        #On récupère les dimensions de l'image ainsi que les valeurs de ses pixels
-        data = raw_ppm_to_list(file, base)
+    data = image_to_list(file, base)
     dim = data[0]
     pixels = data[1]
 
@@ -372,14 +248,7 @@ def steg_decode(file, raw=True, base=16):
     image.close()
 
 def negative(file, raw=True):
-    image = open(file, 'rb')
-    data = image.read()
-    image.close()
-    if data[1] == 51:
-        data = ascii_ppm_to_list(file, 10)
-    else:
-        #On récupère les dimensions de l'image ainsi que les valeurs de ses pixels
-        data = raw_ppm_to_list(file, 10)
+    data = image_to_list(file, base)
     dim = data[0]
     pixels = data[1]
 
