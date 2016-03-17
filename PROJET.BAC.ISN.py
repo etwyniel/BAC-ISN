@@ -20,8 +20,8 @@ def image_to_list(file, base=16):
     dim = image.size
     data = image.load()
     values = []
-    for line in range(dim[0]):
-        for column in range(dim[1]):
+    for column in range(dim[1]):
+        for line in range(dim[0]):
             for p in range(3):
                 if base == 16:
                     values.append(hex(data[line, column][p])[2:])
