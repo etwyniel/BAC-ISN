@@ -51,7 +51,7 @@ def header(file, dim, raw=True):
     image.close()
 
 def gray_levels(file, raw=True):
-    data = imaeg_to_list(file, 10)
+    data = image_to_list(file, 10)
     dim = data[0]
     pixels = data[1]
 
