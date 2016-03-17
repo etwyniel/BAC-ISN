@@ -5,6 +5,7 @@ from tkinter import *
 from threading import Thread
 from math import log
 from PIL import Image
+from numpy import zeros, uint8
 
 
 def base4(n):
@@ -20,17 +21,17 @@ def image_to_list(file, base=16):
     dim = image.size
     data = image.load()
     values = []
-    for column in range(dim[1]):
-        for line in range(dim[0]):
+    for line in range(dim[1]):
+        for column in range(dim[0]):
             for p in range(3):
                 if base == 16:
-                    values.append(hex(data[line, column][p])[2:])
+                    values.append(hex(data[column, line][p])[2:])
                 elif base == 10:
-                    values.append(data[line, column][p])
+                    values.append(data[column, line][p])
                 elif base == 4:
-                    values.append(base4(data[line, column][p]))
+                    values.append(base4(data[column, line][p]))
                 elif base == 2:
-                    values.append(bin(data[line, column][p])[2:])
+                    values.append(bin(data[column, line][p])[2:])
     return dim, values
 
 def header(file, dim, raw=True):
@@ -54,29 +55,31 @@ def gray_levels(file, raw=True):
     data = image_to_list(file, 10)
     dim = data[0]
     pixels = data[1]
+    values = zeros((dim[0], dim[1],3), dtype=uint8)
 
     new_filename = file.split('.')[0] + ' - gray.ppm'
 
-    header(new_filename, dim, raw)
+##    header(new_filename, dim, raw)
 
-    if raw:
-        image = open(new_filename, 'ab')
-        new_pixels = []
-    else:
-        image = open(new_filename, 'a')
-        new_pixels = ''
+##    if raw:
+##        image = open(new_filename, 'ab')
+##        new_pixels = []
+##    else:
+##        image = open(new_filename, 'a')
+##        new_pixels = ''
 
-    for a in range(0, dim[0] * dim[1] * 3, 3):
-        new_pixel = int(sum(pixels[a:a+3]) / 3)
-        if raw:
-            new_pixels += [new_pixel] * 3
-        else:
-            new_pixels += (str(new_pixel) + '\n') * 3
-    if raw:
-        image.write(bytes(new_pixels))
-    else:
-        image.write(new_pixels)
-    image.close()
+    for column in range(0, dim[0] * 3, 3):
+        for line in range(dim[1]):
+            
+            new_pixel = int(sum(pixels[column+line:column+line+3]) / 3)
+            print(new_pixel)
+            if raw:
+                values[column/3, line] = new_pixel
+            else:
+                new_pixels += (str(new_pixel) + '\n') * 3
+    image = Image.fromarray(values, 'RGB')
+    image.save('C:/Users/Maman/Downloads/new_file.jpg', 'jpeg')
+    return image
 
 def outline(file, raw=True):
     data = image_to_list(file, 10)
