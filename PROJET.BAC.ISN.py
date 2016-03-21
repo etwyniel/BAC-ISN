@@ -14,36 +14,31 @@ from threading import Thread
 from math import log
 #Pour éxécuter les calculs de changement de base. 
 from PIL import Image
-#Pour sortir les pixels d'une image
-from numpy import zeros, uint8
-#Pour générer de tableaux de dimensions.
+#Pour stocker les pixels d'une image dans une bibliothèque.
 
-#On définit ici la commande qui sert à changer la valeur d'un nombre en base 10 en base 4
+
+#On définit ici une commande essentielle qu'on utilisera plus loin :
 def base4(n):
-    #On effectue la conversion de n : on en prend la partie entière
     n = int(n)
-    #On définit x, une valeur
     x = ''
-    #Tant que n est supérieur strictement à 0, on le divise par quatre et on rentrera dans x la valeur restante après la division 
     while n > 0:
         x = str(n % 4) + x
         n = int(n / 4)
-    #La valeur finale obtenue est x, n en base 4
     return x
-    
-#On définit la commande
+
 def image_to_list(file, base=16):
     image = Image.open(file, 'r')
     dim = image.size
-    data = image.load()
+    data = image.getdata()
+    image.close()
     values = []
     for line in range(dim[1]):
         for column in range(dim[0]):
             for p in range(3):
                 if base == 16:
-                    values.append(hex(data[column, line][p])[2:])
+                    values.append(hex(data[column+line*dim[0]][p])[2:])
                 elif base == 10:
-                    values.append(data[column, line][p])
+                    values.append(data[column+line*dim[0]][p])
                 elif base == 4:
                     values.append(base4(data[column, line][p]))
                 elif base == 2:
@@ -71,30 +66,18 @@ def gray_levels(file, raw=True):
     data = image_to_list(file, 10)
     dim = data[0]
     pixels = data[1]
-    values = zeros((dim[0], dim[1],3), dtype=uint8)
+    values = []
 
-    new_filename = file.split('.')[0] + ' - gray.ppm'
+    new_filename = file.split('.')[0] + ' - gray.jpg'
 
-##    header(new_filename, dim, raw)
-
-##    if raw:
-##        image = open(new_filename, 'ab')
-##        new_pixels = []
-##    else:
-##        image = open(new_filename, 'a')
-##        new_pixels = ''
-
-    for column in range(0, dim[0] * 3, 3):
-        for line in range(dim[1]):
+    for x in range(0, len(pixels), 3):
+        new_color = int(sum(pixels[x:x+3]) / 3)
+        new_pixel = new_color, new_color, new_color
+        values += [new_pixel]
             
-            new_pixel = int(sum(pixels[column+line:column+line+3]) / 3)
-            print(new_pixel)
-            if raw:
-                values[column/3, line] = new_pixel
-            else:
-                new_pixels += (str(new_pixel) + '\n') * 3
-    image = Image.fromarray(values, 'RGB')
-    image.save('C:/Users/Maman/Downloads/new_file.jpg', 'jpeg')
+    image = Image.new('RGB', dim)
+    image.putdata(values)
+    image.save('D:/' + new_filename, 'jpeg')
     return image
 
 def outline(file, raw=True):
@@ -103,40 +86,33 @@ def outline(file, raw=True):
     pixels = data[1]
 
     #On crée un nouveau fichier dans lequel on écrit l'en-tête
-    new_filename = file.split('.')[0] + ' - outline.ppm'
-    header(new_filename, dim, raw)
+    new_filename = file.split('.')[0] + ' - outline.jpg'
 
-    if raw:
-        image = open(new_filename, 'ab')
-        new_pixels = []
-    else:
-        image = open(new_filename, 'a')
-        new_pixels = ''
-
-    for h in range(dim[1]):
-        for w in range(dim[0]):
-            if w in [0, dim[0] - 1] or h in [0, dim[1] - 1]:
+    values = []
+    
+    for w in range(0, dim[0] * 3, 3):
+        for h in range(dim[1]):
+            if w in [0, (dim[0] - 1)*3] or h in [0, dim[1] - 1]:
                 new_pixel = 255
             else:
-                new_pixel = 255 * (8 * pixels[(h * dim[0] + w) * 3] - sum([
-                    pixels[((h-1) * dim[0] + w) * 3],
-                    pixels[((h+1) * dim[0] + w) * 3],
-                    pixels[(h * dim[0] + w - 1) * 3],
-                    pixels[(h * dim[0] + w - 1) * 3],
-                    pixels[((h-1) * dim[0] + w - 1) * 3],
-                    pixels[((h-1) * dim[0] + w + 1) * 3],
-                    pixels[((h+1) * dim[0] + w - 1) * 3],
-                    pixels[((h+1) * dim[0] + w + 1) * 3]]
+                new_pixel = 255 * (8 * pixels[h + w * dim[1]] - sum([
+                    pixels[(h-1) + w * dim[1]],
+                    pixels[(h+1) + w * dim[1]],
+                    pixels[h + (w - 1) * dim[1]],
+                    pixels[h + (w - 1) * dim[1]],
+                    pixels[(h-1) + (w - 1) * dim[1]],
+                    pixels[(h-1) + (w + 1) * dim[1]],
+                    pixels[(h+1) + (w - 1) * dim[1]],
+                    pixels[(h+1) + (w + 1) * dim[1]]]
                     ) < 128)
-            if raw:
-                new_pixels += [int(new_pixel)] * 3
-            else:
-                new_pixels += (str(new_pixel) + '\n') * 3
-    if raw:
-        image.write(bytes(new_pixels))
-    else:
-        image.write(new_pixels)
-    image.close()
+                new_pixel = max(new_pixel, 0)
+                new_pixel = min(new_pixel, 255)
+                values.append((new_pixel, new_pixel, new_pixel))
+                
+    image = Image.new('RGB', dim)
+    image.putdata(values)
+    image.save('D:/' + new_filename, 'jpeg')
+    return image
 
 def embossage(file, raw=True):
     data = image_to_list(file, 10)
@@ -215,10 +191,7 @@ def steg_encode(file, raw=True, base=16):
                 new_pixels += [int(byte, base)]
             else:
                 new_pixels += str(int(byte, base)) + '\n'
-    if raw:
-        image.write(bytes(new_pixels))
-    else:
-        image.write(new_pixels)
+    
     #Une fois la stéganographie terminée, on referme le fichier pour appliquer les changements
     image.close()
 
