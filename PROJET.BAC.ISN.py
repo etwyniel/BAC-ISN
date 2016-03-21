@@ -1,13 +1,24 @@
+#Début du programme
+
+#On déclare tous les commandes dont on aura besoin, et qui ne sont pas dans le python de base :
 from random import randrange
+#Pour générer des nombres aléatoires plus efficacement. 
 from time import sleep
+#Pour arrêter le déroulement du programme.
 from os import system
+#Pour exécuter des commandes depuis la console, comme renommer un fichier.
 from tkinter import *
+#Pour une meilleure interface. 
 from threading import Thread
+#Pour effectuer simultanément des parties différentes du programme.
 from math import log
+#Pour éxécuter les calculs de changement de base. 
 from PIL import Image
+#Pour stocker les pixels d'une image dans une bibliothèque.
 from numpy import zeros, uint8
+#Pour générer de tableaux de dimensions.
 
-
+#On définit ici une commande essentielle qu'on utilisera plus loin :
 def base4(n):
     n = int(n)
     x = ''
