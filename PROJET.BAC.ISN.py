@@ -18,8 +18,9 @@ from PIL import Image
 from numpy import zeros, uint8
 #Pour générer de tableaux de dimensions.
 
-#On définit ici une commande essentielle qu'on utilisera plus loin :
+#On définit ici une commande essentielle qu'on utilisera plus loin et qui sert à changer une valeur d'un nombre en base 10 en base 4
 def base4(n):
+    #On efectue la conversion de n : on en prend le partie entière
     n = int(n)
     x = ''
     while n > 0:
