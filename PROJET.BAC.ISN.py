@@ -14,20 +14,24 @@ from threading import Thread
 from math import log
 #Pour éxécuter les calculs de changement de base. 
 from PIL import Image
-#Pour stocker les pixels d'une image dans une bibliothèque.
+#Pour sortir les pixels d'une image
 from numpy import zeros, uint8
 #Pour générer de tableaux de dimensions.
 
-#On définit ici une commande essentielle qu'on utilisera plus loin et qui sert à changer une valeur d'un nombre en base 10 en base 4
+#On définit ici la commande qui sert à changer la valeur d'un nombre en base 10 en base 4
 def base4(n):
-    #On efectue la conversion de n : on en prend le partie entière
+    #On effectue la conversion de n : on en prend la partie entière
     n = int(n)
+    #On définit x, une valeur
     x = ''
+    #Tant que n est supérieur strictement à 0, on le divise par quatre et on rentrera dans x la valeur restante après la division 
     while n > 0:
         x = str(n % 4) + x
         n = int(n / 4)
+    #La valeur finale obtenue est x, n en base 4
     return x
-
+    
+#On définit la commande
 def image_to_list(file, base=16):
     image = Image.open(file, 'r')
     dim = image.size
