@@ -5,7 +5,7 @@ from random import randrange
 #Pour générer des nombres aléatoires plus efficacement. 
 from time import sleep
 #Pour arrêter le déroulement du programme.
-from os import system
+from os import system, getcwd
 #Pour exécuter des commandes depuis la console, comme renommer un fichier.
 from tkinter import *
 #Pour une meilleure interface. 
@@ -36,13 +36,16 @@ def image_to_list(file, base=16):
         for column in range(dim[0]):
             for p in range(3):
                 if base == 16:
-                    values.append(hex(data[column+line*dim[0]][p])[2:])
+                    val = hex(data[column+line*dim[0]][p])[2:]
+                    values.append('0'*(2-len(val)) + val)
                 elif base == 10:
                     values.append(data[column+line*dim[0]][p])
                 elif base == 4:
-                    values.append(base4(data[column, line][p]))
+                    val = base4(data[column, line][p])
+                    values.append('0'*(4-len(val)) + val)
                 elif base == 2:
-                    values.append(bin(data[column, line][p])[2:])
+                    val = bin(data[column, line][p])[2:]
+                    values.append('0'*(8-len(val)) + val)
     return dim, values
 
 def header(file, dim, raw=True):
@@ -86,32 +89,32 @@ def outline(file, raw=True):
     pixels = data[1]
 
     #On crée un nouveau fichier dans lequel on écrit l'en-tête
-    new_filename = file.split('.')[0] + ' - outline.jpg'
+    new_filename = '.'.join(file.split('.')[:-1]) + ' - outline.jpg'
 
     values = []
     
-    for w in range(0, dim[0] * 3, 3):
-        for h in range(dim[1]):
-            if w in [0, (dim[0] - 1)*3] or h in [0, dim[1] - 1]:
+    for h in range(dim[1]):
+        for w in range(dim[0]):
+            if w in [0, dim[0] - 1] or h in [0, dim[1] - 1]:
                 new_pixel = 255
             else:
-                new_pixel = 255 * (8 * pixels[h + w * dim[1]] - sum([
-                    pixels[(h-1) + w * dim[1]],
-                    pixels[(h+1) + w * dim[1]],
-                    pixels[h + (w - 1) * dim[1]],
-                    pixels[h + (w - 1) * dim[1]],
-                    pixels[(h-1) + (w - 1) * dim[1]],
-                    pixels[(h-1) + (w + 1) * dim[1]],
-                    pixels[(h+1) + (w - 1) * dim[1]],
-                    pixels[(h+1) + (w + 1) * dim[1]]]
+                new_pixel = 255 * (8 * pixels[h * dim[0] * 3 + w * 3] - sum([
+                    pixels[(h-1) * dim[0] * 3 + w * 3],
+                    pixels[(h+1) * dim[0] * 3 + w * 3],
+                    pixels[h * dim[0] * 3 + (w - 1) * 3],
+                    pixels[h * dim[0] * 3 + (w - 1) * 3],
+                    pixels[(h-1) * dim[0] * 3 + (w - 1) * 3],
+                    pixels[(h-1) * dim[0] * 3 + (w + 1) * 3],
+                    pixels[(h+1) * dim[0] * 3 + (w - 1) * 3],
+                    pixels[(h+1) * dim[0] * 3 + (w + 1) * 3]]
                     ) < 128)
                 new_pixel = max(new_pixel, 0)
                 new_pixel = min(new_pixel, 255)
-                values.append((new_pixel, new_pixel, new_pixel))
+            values.append((new_pixel, new_pixel, new_pixel))
                 
     image = Image.new('RGB', dim)
     image.putdata(values)
-    image.save('D:/' + new_filename, 'jpeg')
+    image.save(getcwd() + '\\' + new_filename, 'jpeg')
     return image
 
 def embossage(file, raw=True):
@@ -120,15 +123,9 @@ def embossage(file, raw=True):
     pixels = data[1]
 
     #On crée un nouveau fichier dans lequel on écrit l'en-tête
-    new_filename = file.split('.')[0] + ' - emb.ppm'
-    header(new_filename, dim, raw)
+    new_filename = '.'.join(file.split('.')[:-1]) + ' - emb.jpg'
 
-    if raw:
-        image = open(new_filename, 'ab')
-        new_pixels = []
-    else:
-        image = open(new_filename, 'a')
-        new_pixels = ''
+    values = []
 
     for h in range(dim[1]):
         for w in range(dim[0]):
@@ -145,15 +142,13 @@ def embossage(file, raw=True):
                     )
                 new_pixel = max(new_pixel, 0)
                 new_pixel = min(new_pixel, 255)
-            if raw:
-                new_pixels += [int(new_pixel)] * 3
-            else:
-                new_pixels += (str(new_pixel) + '\n') * 3
-    if raw:
-        image.write(bytes(new_pixels))
-    else:
-        image.write(new_pixels)
-    image.close()
+            values.append((new_pixel, new_pixel, new_pixel))
+    
+    image = Image.new('RGB', dim)
+    image.putdata(values)
+    image.save(getcwd() + '\\' + new_filename, 'jpeg')
+    return image
+
 
 def steg_encode(file, raw=True, base=16):
     data = image_to_list(file, base)
@@ -161,39 +156,39 @@ def steg_encode(file, raw=True, base=16):
     pixels = data[1]
 
     #On crée un nouveau fichier dans lequel on écrit l'en-tête
-    new_filename = file.split('.')[0] + ' - steg{}.ppm'.format(base)
-    if base == 16:
-        header(new_filename, [dim[0] * 2, dim[1]], raw)
-    elif base == 4:
-        header(new_filename, [dim[0] * 2, dim[1] * 2], raw)
-    elif base == 2:
-        header(new_filename, [dim[0] * 2, dim[1] * 4], raw)
-    #On rouvre le fichier en mode 'ab' pour pouvoir ajouter de données à la suite de l'en-tête
-    if raw:
-        image = open(new_filename, 'ab')
-        new_pixels = []
-    else:
-        image = open(new_filename, 'a')
-        new_pixels = ''
+    new_filename = '.'.join(file.split('.')[:-1]) + ' - steg{}.jpg'.format(base)
+
+    values = []
+
     
     #On sépare chaque octet en deux digits hexadécimaux (4 bits chacuns) que l'on ajoute à la suite de deux digits hexadecimaux aléatoires
+    new_pixel = tuple()
     
     for color in pixels:
         for a in color:
             if base == 16:
-                byte = hex(randrange(16))[2:] + a
+                byte = hex(randrange(16)) + a
             elif base == 4:
                 byte = base4(randrange(64)) + a
             elif base == 2:
                 byte = bin(randrange(128)) + a
+            new_pixel += tuple([int(byte, base)])
+            if len(new_pixel) == 3:
+                values.append(new_pixel)
+                new_pixel = tuple()
             #On convertit ce nouvel octet en entier, pour ensuite le convertir en octet binaire, qui peut être écrit dans le fichier.
-            if raw:
-                new_pixels += [int(byte, base)]
-            else:
-                new_pixels += str(int(byte, base)) + '\n'
-    
-    #Une fois la stéganographie terminée, on referme le fichier pour appliquer les changements
-    image.close()
+    if base == 16:
+        new_dim = (dim[0]*2, dim[1])
+    elif base == 4:
+        new_dim = (dim[0]*2, dim[1]*2)
+    elif base == 2:
+        new_dim = (dim[0]*4, dim[1]*2)
+
+    image = Image.new('RGB', new_dim)
+    image.putdata(values)
+    image.save(getcwd() + '\\' + new_filename, 'jpeg')
+    return image
+
 
 def steg_decode(file, raw=True, base=16):
     data = image_to_list(file, base)
@@ -201,43 +196,38 @@ def steg_decode(file, raw=True, base=16):
     pixels = data[1]
 
     #On crée un nouveau fichier dans lequel on écrit l'en-tête
-    new_filename = file.split('.')[0] + ' - decoded.ppm'
-    if base == 16:
-        header(new_filename, [dim[0] / 2, dim[1]], raw)
-    elif base == 4:
-        header(new_filename, [dim[0] / 2, dim[1] / 2], raw)
-    elif base == 2:
-        header(new_filename, [dim[0] / 2, dim[1] / 4], raw)
-    #On rouvre le fichier en mode 'ab' pour pouvoir ajouter de données à la suite de l'en-tête
-    if raw:
-        image = open(new_filename, 'ab')
-        new_pixels = []
-    else:
-        image = open(new_filename, 'a')
-        new_pixels = ''
-
+    new_filename = '.'.join(file.split('.')[:-1]) + ' - decoded.jpg'
+  
     #On prévient l'utilisateur que le traitement de son image a commencé
     print('Traitement de l\'image en cours...')
+    values = []
     
     #Pour chaque valeur de l'image finale, on recupère 8 LSBs consécutifs
     #                                           Least Significant Bit
-    x = log(256) / log(base)
+    new_pixel = tuple()
+    x = int(log(256) / log(base))
     for a in range(0, int(dim[1] * dim[0] * 3), x):
         byte = ''
         for bit in range(x):
             byte += pixels[a+bit][x-1]
+        new_pixel += tuple([int(byte, base)])
+        if len(new_pixel) == 3:
+            values.append(new_pixel)
+            new_pixel = tuple()
         #On stocke les valeurs décodées dans le nouveau fichier
-        if raw:
-            new_pixels += [int(byte, base)]
-        else:
-            new_pixels += str(int(byte, base)) + '\n'
-    if raw:
-        image.write(bytes(new_pixels))
-    else:
-        image.write(new_pixels)
 
-    #On ferme le fichier encodé et le fichier décodé
-    image.close()
+    if base == 16:
+        new_dim = (int(dim[0]/2), dim[1])
+    elif base == 4:
+        new_dim = (int(dim[0]/2), int(dim[1]/2))
+    elif base == 2:
+        new_dim = (int(dim[0]/4), int(dim[1]/2))
+
+    image = Image.new('RGB', new_dim)
+    image.putdata(values)
+    image.save(getcwd() + '\\' + new_filename, 'jpeg')
+    return image
+    
 
 def negative(file, raw=True):
     data = image_to_list(file, base)
@@ -390,7 +380,6 @@ try:
             "\n4) Décodage d'une stéganographie"
             "\n5) Embossage")
         choice = input("Opération : ")
-
         if choice == "1":
             print('Format de sortie:\n1) Brut\n2) ASCII')
             f = input('Format: ')
@@ -478,9 +467,6 @@ except ValueError:
     print("Erreur. Veuillez vérifier que le format fichier correspond conditions requises")
 except:
     print("Le programme a cessé de fonctionner.")            
-
-
-
 print("Done")
 #sleep(5)
 """
