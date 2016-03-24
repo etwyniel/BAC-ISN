@@ -156,7 +156,7 @@ def steg_encode(file, raw=True, base=16):
     pixels = data[1]
 
     #On crée un nouveau fichier dans lequel on écrit l'en-tête
-    new_filename = '.'.join(file.split('.')[:-1]) + ' - steg{}.jpg'.format(base)
+    new_filename = '.'.join(file.split('.')[:-1]) + ' - steg{}.png'.format(base)
 
     values = []
 
@@ -167,7 +167,7 @@ def steg_encode(file, raw=True, base=16):
     for color in pixels:
         for a in color:
             if base == 16:
-                byte = hex(randrange(16)) + a
+            	byte = hex(randrange(16)) + a
             elif base == 4:
                 byte = base4(randrange(64)) + a
             elif base == 2:
@@ -184,9 +184,9 @@ def steg_encode(file, raw=True, base=16):
     elif base == 2:
         new_dim = (dim[0]*4, dim[1]*2)
 
-    image = Image.new('RGB', new_dim)
+    image = Image.new('RGBA', new_dim)
     image.putdata(values)
-    image.save(getcwd() + '\\' + new_filename, 'jpeg')
+    image.save(getcwd() + '\\' + new_filename, 'png')
     return image
 
 
