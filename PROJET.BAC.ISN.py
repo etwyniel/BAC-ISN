@@ -41,10 +41,10 @@ def image_to_list(file, base=16):
                 elif base == 10:
                     values.append(data[column+line*dim[0]][p])
                 elif base == 4:
-                    val = base4(data[column, line][p])
+                    val = base4(data[column+line*dim[0]][p])
                     values.append('0'*(4-len(val)) + val)
                 elif base == 2:
-                    val = bin(data[column, line][p])[2:]
+                    val = bin(data[column+line*dim[0]][p])[2:]
                     values.append('0'*(8-len(val)) + val)
     return dim, values
 
@@ -66,9 +66,7 @@ def header(file, dim, raw=True):
     image.close()
 
 def gray_levels(file, raw=True):
-    data = image_to_list(file, 10)
-    dim = data[0]
-    pixels = data[1]
+    dim, pixels = image_to_list(file, 10)
     values = []
 
     new_filename = file.split('.')[0] + ' - gray.jpg'
@@ -84,10 +82,8 @@ def gray_levels(file, raw=True):
     return image
 
 def outline(file, raw=True):
-    data = image_to_list(file, 10)
-    dim = data[0]
-    pixels = data[1]
-
+    dim, pixels = image_to_list(file, 10)
+    
     #On crée un nouveau fichier dans lequel on écrit l'en-tête
     new_filename = '.'.join(file.split('.')[:-1]) + ' - outline.jpg'
 
@@ -118,9 +114,7 @@ def outline(file, raw=True):
     return image
 
 def embossage(file, raw=True):
-    data = image_to_list(file, 10)
-    dim = data[0]
-    pixels = data[1]
+    dim, pixels = image_to_list(file, 10)
 
     #On crée un nouveau fichier dans lequel on écrit l'en-tête
     new_filename = '.'.join(file.split('.')[:-1]) + ' - emb.jpg'
@@ -151,9 +145,7 @@ def embossage(file, raw=True):
 
 
 def steg_encode(file, raw=True, base=16):
-    data = image_to_list(file, base)
-    dim = data[0]
-    pixels = data[1]
+    dim, pixels = image_to_list(file, base)
 
     #On crée un nouveau fichier dans lequel on écrit l'en-tête
     new_filename = '.'.join(file.split('.')[:-1]) + ' - steg{}.png'.format(base)
@@ -191,9 +183,7 @@ def steg_encode(file, raw=True, base=16):
 
 
 def steg_decode(file, raw=True, base=16):
-    data = image_to_list(file, base)
-    dim = data[0]
-    pixels = data[1]
+    dim, pixels = image_to_list(file, base)
 
     #On crée un nouveau fichier dans lequel on écrit l'en-tête
     new_filename = '.'.join(file.split('.')[:-1]) + ' - decoded.jpg'
@@ -230,32 +220,22 @@ def steg_decode(file, raw=True, base=16):
     
 
 def negative(file, raw=True):
-    data = image_to_list(file, base)
-    dim = data[0]
-    pixels = data[1]
+    dim, pixels = image_to_list(file, 10)
+    
+    new_filename = file.split('.')[0] + ' - negative.jpg'
 
-    new_filename = file.split('.')[0] + ' - negative.ppm'
-    header(new_filename, dim, raw)
-
-    if raw:
-        image = open(new_filename, 'ab')
-        new_pixels = []
-    else:
-        image = open(new_filename, 'a')
-        new_pixels = ''
-
+    values = []
+    new_pixel = tuple()
     for a in pixels:
-        if raw:
-            new_pixels += [255 - a]
-        else:
-            new_pixels += str(255 - a) + '\n'
+        new_pixel += tuple([255 - a])
+        if len(new_pixel) == 3:
+            values.append(new_pixel)
+            new_pixel = tuple()
 
-    if raw:
-        image.write(bytes(new_pixels))
-    else:
-        image.write(new_pixels)
-
-    image.close()
+    image = Image.new('RGBA', dim)
+    image.putdata(values)
+    image.save(getcwd() + '\\' + new_filename, 'png')
+    return image
 
 
 def check_settings():
