@@ -337,8 +337,6 @@ def if_steg(master):
             for i in encoding_select:
                 f_jpeg.config(state=NORMAL)
                 i.pack_forget()
-        print('hi')
-    print('bye')
 
 stop = False
 steg = Thread(target=if_steg, args=[master])
