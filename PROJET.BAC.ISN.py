@@ -15,6 +15,7 @@ from math import log
 #Pour éxécuter les calculs de changement de base. 
 from PIL import Image
 #Pour stocker les pixels d'une image dans une bibliothèque.
+from sys import exit
 
 
 #On définit ici une commande essentielle qu'on utilisera plus loin :
@@ -48,28 +49,14 @@ def image_to_list(file, base=16):
                     values.append('0'*(8-len(val)) + val)
     return dim, values
 
-def header(file, dim, raw=True):
-    if raw:
-        #Ouvrir en "wb+" permet d'effacer le contenu du fichier avant d'y accéder en mode binaire
-        image = open(file, "wb+")
-        image.write(b"P6\n# CREATOR: ETWYNIEL FILTER v2.0\n")
-        #On utilise la liste dim qui contient la résolution de l'image à transformer, pour écrire l'en-tete
-        #On encode ces données pour qu'elles puissent être stockées dans le fichier binaire
-        image.write((str(dim[0])+" "+str(dim[1])+"\n").encode())
-        image.write(b"255\n")
-        #En mode écriture, close() est indispensable pour que le contenu des instructions write() soit écrit dans le fichier
-    else:
-        image = open(file, 'w+')
-        image.write('P3\n# CREATOR: ETWYNIEL FILTER v2.0\n')
-        image.write(str(dim[0]) + ' ' + str(dim[1]) + '\n')
-        image.write('255\n')
-    image.close()
-
-def gray_levels(file, raw=True):
+def gray_levels(file, f='PNG'):
     dim, pixels = image_to_list(file, 10)
     values = []
-
-    new_filename = file.split('.')[0] + ' - gray.jpg'
+    if f == 'JPEG':
+        ext = 'jpg'
+    elif f == 'PNG':
+        ext = 'png'
+    new_filename = file.split('.')[0] + ' - gray.' + ext
 
     for x in range(0, len(pixels), 3):
         new_color = int(sum(pixels[x:x+3]) / 3)
@@ -78,15 +65,18 @@ def gray_levels(file, raw=True):
             
     image = Image.new('RGB', dim)
     image.putdata(values)
-    image.save('D:/' + new_filename, 'jpeg')
+    image.save('D:/' + new_filename, f)
     return image
 
-def outline(file, raw=True):
+def outline(file, f='PNG'):
     dim, pixels = image_to_list(file, 10)
-    
-    #On crée un nouveau fichier dans lequel on écrit l'en-tête
-    new_filename = '.'.join(file.split('.')[:-1]) + ' - outline.jpg'
 
+    if f == 'JPEG':
+        ext = 'jpg'
+    elif f == 'PNG':
+        ext = 'png'    
+    #On crée un nouveau fichier dans lequel on écrit l'en-tête
+    new_filename = '.'.join(file.split('.')[:-1]) + ' - outline.' + ext
     values = []
     
     for h in range(dim[1]):
@@ -110,21 +100,25 @@ def outline(file, raw=True):
                 
     image = Image.new('RGB', dim)
     image.putdata(values)
-    image.save(getcwd() + '\\' + new_filename, 'jpeg')
+    image.save(getcwd() + '\\' + new_filename, f)
     return image
 
-def embossage(file, raw=True):
+def embossage(file, f='PNG'):
     dim, pixels = image_to_list(file, 10)
 
     #On crée un nouveau fichier dans lequel on écrit l'en-tête
-    new_filename = '.'.join(file.split('.')[:-1]) + ' - emb.jpg'
+    if f == 'JPEG':
+        ext = 'jpg'
+    elif f == 'PNG':
+        ext = 'png'
+    new_filename = '.'.join(file.split('.')[:-1]) + ' - emb.' + ext
 
     values = []
 
     for h in range(dim[1]):
         for w in range(dim[0]):
             if w in [0, dim[0] - 1] or h in [0, dim[1] - 1]:
-                new_pixel = 255
+                new_pixel = 0
             else:
                 new_pixel = sum([
                     pixels[((h+1) * dim[0] + w) * 3],
@@ -140,15 +134,15 @@ def embossage(file, raw=True):
     
     image = Image.new('RGB', dim)
     image.putdata(values)
-    image.save(getcwd() + '\\' + new_filename, 'jpeg')
+    image.save(getcwd() + '\\' + new_filename, f)
     return image
 
 
-def steg_encode(file, raw=True, base=16):
+def steg_encode(file, base=16):
     dim, pixels = image_to_list(file, base)
 
     #On crée un nouveau fichier dans lequel on écrit l'en-tête
-    new_filename = '.'.join(file.split('.')[:-1]) + ' - steg{}.jpg'.format(base)
+    new_filename = '.'.join(file.split('.')[:-1]) + ' - steg{}.png'.format(base)
 
     values = []
 
@@ -176,17 +170,17 @@ def steg_encode(file, raw=True, base=16):
     elif base == 2:
         new_dim = (dim[0]*4, dim[1]*2)
 
-    image = Image.new('RGB', new_dim)
+    image = Image.new('RGBA', new_dim)
     image.putdata(values)
-    image.save(getcwd() + '\\' + new_filename, 'jpeg', subsampling=0)
+    image.save(getcwd() + '\\' + new_filename, 'png', subsampling=0)
     return image
 
 
-def steg_decode(file, raw=True, base=16):
+def steg_decode(file, base=16):
     dim, pixels = image_to_list(file, base)
 
     #On crée un nouveau fichier dans lequel on écrit l'en-tête
-    new_filename = '.'.join(file.split('.')[:-1]) + ' - decoded.jpg'
+    new_filename = '.'.join(file.split('.')[:-1]) + ' - decoded.png'
   
     #On prévient l'utilisateur que le traitement de son image a commencé
     print('Traitement de l\'image en cours...')
@@ -213,16 +207,20 @@ def steg_decode(file, raw=True, base=16):
     elif base == 2:
         new_dim = (int(dim[0]/4), int(dim[1]/2))
 
-    image = Image.new('RGB', new_dim)
+    image = Image.new('RGBA', new_dim)
     image.putdata(values)
-    image.save(getcwd() + '\\' + new_filename, 'jpeg')
+    image.save(getcwd() + '\\' + new_filename, 'png')
     return image
     
 
-def negative(file, raw=True):
+def negative(file, f='PNG'):
     dim, pixels = image_to_list(file, 10)
     
-    new_filename = file.split('.')[0] + ' - negative.jpg'
+    if f == 'JPEG':
+        ext = 'jpg'
+    elif f == 'PNG':
+        ext = 'png'
+    new_filename = file.split('.')[0] + ' - negative.' + ext
 
     values = []
     new_pixel = tuple()
@@ -234,7 +232,7 @@ def negative(file, raw=True):
 
     image = Image.new('RGBA', dim)
     image.putdata(values)
-    image.save(getcwd() + '\\' + new_filename, 'png')
+    image.save(getcwd() + '\\' + new_filename, f)
     return image
 
 
@@ -258,21 +256,26 @@ def start_op():
     #On prévient l'utilisateur que le traitement de son image a commencé
     message.config(text='Traitement de l\'image en cours...')
     message.pack()
-    if not file.endswith('.ppm'):
-        file += ".ppm"
-    if operation.get() == 'Conversion en niveaux de gris':
-        gray_levels(file, raw.get())
-    elif operation.get() == 'Détection des contours':
-        outline(file, raw.get())
-    elif operation.get() == 'Négatif':
-        negative(file, raw.get())
-    elif operation.get() == 'Stéganographie (encodage)':
-        steg_encode(file, raw.get(), base.get())
-    elif operation.get() == 'Stéganographie (décodage)':
-        steg_decode(file, raw.get(), base.get())
+    try:
+        if operation.get() == 'Conversion en niveaux de gris':
+            im = gray_levels(file, f.get())
+        elif operation.get() == 'Détection des contours':
+            im = outline(file, f.get())
+        elif operation.get() == 'Négatif':
+            im = negative(file, f.get())
+        elif operation.get() == 'Embossage':
+            im = embossage(file, f.get())
+        elif operation.get() == 'Stéganographie (encodage)':
+            im = steg_encode(file, base.get())
+        elif operation.get() == 'Stéganographie (décodage)':
+            im = steg_decode(file, base.get())
+        message.config(text='Fini')
+        filename.set('')
+    except FileNotFoundError:
+        no_file.pack()
+        message.pack_forget()
     accept.config(state=NORMAL)
-    message.config(text='Fini')
-    filename.set('')
+    im.show()
         
     
 
@@ -286,16 +289,19 @@ filename = StringVar()
 filename_field = Entry(master, textvariable=filename, width=50).pack(side=TOP, anchor=N)
 
 Label(master, text='Format de sortie:').pack(side=TOP, anchor=W)
-raw = BooleanVar()
-raw.set(True)
-Radiobutton(master, text='Brut', variable=raw, value=True).pack(side=TOP, anchor=W)
-Radiobutton(master, text='ASCII', variable=raw, value=False).pack(side=TOP, anchor=W)
+f = StringVar()
+f.set('PNG')
+f_jpeg = Radiobutton(master, text='JPEG', variable=f, value='JPEG')
+f_jpeg.pack(side=TOP, anchor=W)
+f_png = Radiobutton(master, text='PNG', variable=f, value='PNG')
+f_png.pack(side=TOP, anchor=W)
 operation = StringVar()
 operation.set('Choisir une opération à réaliser')
 OptionMenu(master, operation,
            'Conversion en niveaux de gris',
            'Détection des contours',
            'Négatif',
+           'Embossage',
            'Stéganographie (encodage)',
            'Stéganographie (décodage)').pack()
 
@@ -309,14 +315,15 @@ encoding_select.append(Radiobutton(master, text='Binaire', variable=base, value=
 encoding_select.append(Radiobutton(master, text='Base 4', variable=base, value=4))
 encoding_select.append(Radiobutton(master, text='Hexadécimal', variable=base, value=16))
 
-def if_steg():
-    
+def if_steg(master):    
     accept.pack(anchor=S)
     selected = False
-    while 1:
+    while master.state() == 'normal':
         if stop:
             break
         if operation.get().startswith('Stéganographie') and not selected:
+            f_jpeg.config(state=DISABLED)
+            f_png.select()
             selected = True
             accept.pack_forget()
             
@@ -328,124 +335,17 @@ def if_steg():
         elif not operation.get().startswith('Stéganographie') and selected:
             selected = False
             for i in encoding_select:
+                f_jpeg.config(state=NORMAL)
                 i.pack_forget()
+        print('hi')
+    print('bye')
 
 stop = False
-steg = Thread(target=if_steg)
+steg = Thread(target=if_steg, args=[master])
 steg.start()
 
 
 mainloop()
-
-"""
-#Cette commande est cosmétique, et sert à changer la couleur de la console
-system("color 70")
-#Boucle principale, où on demande à l'utilisateur de choisir une opération
-try:
-    while 1:
-        #Début de l interface avec l utilisateur
-        print("Veuillez entrer le nom du fichier .ppm à convertir. Il doit etre sous la forme: P6\nCommentaire(s)\nLongueur Hauteur\n255\nRVBRVBR...")
-        
-        file = input("Nom du fichier : ")
-        
-        if not file.endswith('.ppm'):
-            file += ".ppm"
-        system("cls")
-        
-        print("Opération à effectuer:"
-            "\n1) Conversion en nuances de gris"
-            "\n2) Détection des contours"
-            "\n3) Stéganographie"
-            "\n4) Décodage d'une stéganographie"
-            "\n5) Embossage")
-        choice = input("Opération : ")
-        if choice == "1":
-            print('Format de sortie:\n1) Brut\n2) ASCII')
-            f = input('Format: ')
-            
-            while f not in ['1', '2']:
-                print('Merci de choisir une des deux options.')
-                f = input('Format: ')
-            
-            if f == '1':
-                raw = True
-            else:
-                raw = False
-            
-            gray_levels(file, raw)
-            break
-        
-        elif choice == "2":
-            print('Format de sortie:\n1) Brut\n2) ASCII')
-            f = input('Format: ')
-            
-            while f not in ['1', '2']:
-                print('Merci de choisir une des deux options.')
-                f = input('Format: ')
-            
-            if f == '1':
-                raw = True
-            else:
-                raw = False
-            
-            outline(file, raw)
-            break
-        elif choice == "3":
-            base = int(input('Base numérique: '))
-            while base not in [2, 4, 16]:
-                system('cls')
-                print('Merci de choisir une base valide (2, 4 ou 16)')
-                base = int(input('Base numérique: '))
-            print('Format de sortie:\n1) Brut\n2) ASCII')
-            f = input('Format: ')
-            while f not in ['1', '2']:
-                print('Merci de choisir une des deux options.')
-                f = input('Format: ')
-            if f == '1':
-                raw = True
-            else:
-                raw = False
-            steg_encode(file, raw, base)
-            break
-        elif choice == "4":
-            base = int(input('Base numérique: '))
-            while base not in [2, 4, 16]:
-                system('cls')
-                print('Merci de choisir une base valide (2, 4 ou 16)')
-                base = int(input('Base numérique: '))
-            print('Format de sortie:\n1) Brut\n2) ASCII')
-            f = input('Format: ')
-            while f not in ['1', '2']:
-                print('Merci de choisir une des deux options.')
-                f = input('Format: ')
-            if f == '1':
-                raw = True
-            else:
-                raw = False
-            steg_decode(file, raw, base)
-            break
-        elif choisce == "5":
-            print('Format de sortie:\n1) Brut\n2) ASCII')
-            f = input('Format: ')
-            while f not in ['1', '2']:
-                print('Merci de choisir une des deux options.')
-                f = input('Format: ')
-            if f == '1':
-                raw = True
-            else:
-                raw = False
-            embossage(file, raw)
-        else:
-            system("cls")
-            print("Merci d'entrer un choix valide")
-    system("cls")
-#Gestion des erreurs                      
-except FileNotFoundError:
-    print("Ce fichier n'existe pas. Veuillez entrer le nom d'un fichier .ppm (sans extension)")
-except ValueError:
-    print("Erreur. Veuillez vérifier que le format fichier correspond conditions requises")
-except:
-    print("Le programme a cessé de fonctionner.")            
-print("Done")
-#sleep(5)
-"""
+stop = True
+print(steg.isAlive())
+exit(1)
