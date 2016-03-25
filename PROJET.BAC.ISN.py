@@ -9,13 +9,13 @@ from os import system, getcwd
 #Pour exécuter des commandes depuis la console, comme renommer un fichier.
 from tkinter import *
 #Pour une meilleure interface. 
-from threading import Thread
+from Threading import Thread
 #Pour effectuer simultanément des parties différentes du programme.
 from math import log
 #Pour éxécuter les calculs de changement de base. 
 from PIL import Image
 #Pour stocker les pixels d'une image dans une bibliothèque.
-from sys import exit
+import sys
 
 
 #On définit ici une commande essentielle qu'on utilisera plus loin :
@@ -315,12 +315,11 @@ encoding_select.append(Radiobutton(master, text='Binaire', variable=base, value=
 encoding_select.append(Radiobutton(master, text='Base 4', variable=base, value=4))
 encoding_select.append(Radiobutton(master, text='Hexadécimal', variable=base, value=16))
 
-def if_steg(master):    
+def if_steg():    
     accept.pack(anchor=S)
     selected = False
-    while master.state() == 'normal':
-        if stop:
-            break
+    while not master.stop:
+        print(getattr(master, 'stop'))
         if operation.get().startswith('Stéganographie') and not selected:
             f_jpeg.config(state=DISABLED)
             f_png.select()
@@ -337,13 +336,15 @@ def if_steg(master):
             for i in encoding_select:
                 f_jpeg.config(state=NORMAL)
                 i.pack_forget()
+    print('Out!')
 
-stop = False
-steg = Thread(target=if_steg, args=[master])
+setattr(master, 'stop', False)
+steg = Thread(target=if_steg, daemon=True)
 steg.start()
 
 
 mainloop()
-stop = True
+setattr(master, 'stop', True)
+print(getattr(master, 'stop'))
 print(steg.isAlive())
-exit(1)
+sys.exit(1)
