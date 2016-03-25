@@ -9,7 +9,7 @@ from os import system, getcwd
 #Pour exécuter des commandes depuis la console, comme renommer un fichier.
 from tkinter import *
 #Pour une meilleure interface. 
-from Threading import Thread
+from threading import Thread
 #Pour effectuer simultanément des parties différentes du programme.
 from math import log
 #Pour éxécuter les calculs de changement de base. 
@@ -319,7 +319,6 @@ def if_steg():
     accept.pack(anchor=S)
     selected = False
     while not master.stop:
-        print(getattr(master, 'stop'))
         if operation.get().startswith('Stéganographie') and not selected:
             f_jpeg.config(state=DISABLED)
             f_png.select()
@@ -336,7 +335,6 @@ def if_steg():
             for i in encoding_select:
                 f_jpeg.config(state=NORMAL)
                 i.pack_forget()
-    print('Out!')
 
 setattr(master, 'stop', False)
 steg = Thread(target=if_steg, daemon=True)
@@ -345,6 +343,4 @@ steg.start()
 
 mainloop()
 setattr(master, 'stop', True)
-print(getattr(master, 'stop'))
-print(steg.isAlive())
 sys.exit(1)
