@@ -18,6 +18,9 @@ from PIL import Image
 import sys
 
 
+class InvalidEncoding(Exception):
+    pass
+
 #On définit ici une commande essentielle qu'on utilisera plus loin :
 def base4(n):
     n = int(n)
@@ -185,11 +188,20 @@ def steg_decode(file, base=16):
     #On prévient l'utilisateur que le traitement de son image a commencé
     print('Traitement de l\'image en cours...')
     values = []
+    if base == 16:
+        new_dim = (int(dim[0]/2), dim[1])
+    elif base == 4:
+        new_dim = (int(dim[0]/2), int(dim[1]/2))
+    elif base == 2:
+        new_dim = (int(dim[0]/4), int(dim[1]/2))
+    x = int(log(256) / log(base))
+    if int(len(pixels)/(3*x)) != new_dim[0]*new_dim[1]:
+        print('Wrong size')
+        raise Exception
     
     #Pour chaque valeur de l'image finale, on recupère 8 LSBs consécutifs
     #                                           Least Significant Bit
     new_pixel = tuple()
-    x = int(log(256) / log(base))
     for a in range(0, int(dim[1] * dim[0] * 3), x):
         byte = ''
         for bit in range(x):
@@ -200,12 +212,6 @@ def steg_decode(file, base=16):
             new_pixel = tuple()
         #On stocke les valeurs décodées dans le nouveau fichier
 
-    if base == 16:
-        new_dim = (int(dim[0]/2), dim[1])
-    elif base == 4:
-        new_dim = (int(dim[0]/2), int(dim[1]/2))
-    elif base == 2:
-        new_dim = (int(dim[0]/4), int(dim[1]/2))
 
     image = Image.new('RGBA', new_dim)
     image.putdata(values)
@@ -239,8 +245,9 @@ def negative(file, f='PNG'):
 def check_settings():
     file = filename.get()
     if file == '':
-        if not no_file.winfo_ismapped():
-            no_file.pack()
+        if not err_message.winfo_ismapped():
+            err_message.config(text='Merci d\'entrer un nom valide')
+            err_message.pack()
     elif operation.get() == 'Choisir une opération à réaliser':
             if not no_op.winfo_ismapped():
                 no_op.pack()
@@ -249,9 +256,9 @@ def check_settings():
         op.start()
 
 def start_op():
-    no_file.pack_forget()
+    err_message.pack_forget()
     no_op.pack_forget()
-    file = filename.get()
+    file = filename.get().strip('\r\x08')
     accept.config(state=DISABLED)
     #On prévient l'utilisateur que le traitement de son image a commencé
     message.config(text='Traitement de l\'image en cours...')
@@ -270,9 +277,14 @@ def start_op():
         elif operation.get() == 'Stéganographie (décodage)':
             im = steg_decode(file, base.get())
         message.config(text='Fini')
-        filename.set('')
+        filename_field.delete(0, 'end')
+        filename_field.insert(0, '')
     except FileNotFoundError:
-        no_file.pack()
+        err_message.pack()
+        message.pack_forget()
+    except InvalidEncoding:
+        err_message.config(text='Encodage invalide.')
+        err_message.pack()
         message.pack_forget()
     accept.config(state=NORMAL)
     im.show()
@@ -280,24 +292,27 @@ def start_op():
     
 
 master = Tk()
-message = Label(master)
-no_file = Label(master, text='Merci d\'entrer un nom valide')
-no_op = Label(master, text='Merci de choisir une opération')
+main = Frame(master)
+main.pack(padx=10, pady=2)
+message = Label(main)
+err_message = Label(main, text='Merci d\'entrer un nom valide')
+no_op = Label(main, text='Merci de choisir une opération')
 master.title('BERBAECA')
-title = Label(master, text='Nom du fichier:').pack(anchor=N)
+title = Label(main, text='Nom du fichier:').pack(anchor=N)
 filename = StringVar()
-filename_field = Entry(master, textvariable=filename, width=50).pack(side=TOP, anchor=N)
+filename_field = Entry(main, textvariable=filename, width=50)
+filename_field.pack(side=TOP, anchor=N)
 
-Label(master, text='Format de sortie:').pack(side=TOP, anchor=W)
+Label(main, text='Format de sortie:').pack(side=TOP, anchor=W)
 f = StringVar()
 f.set('PNG')
-f_jpeg = Radiobutton(master, text='JPEG', variable=f, value='JPEG')
+f_jpeg = Radiobutton(main, text='JPEG', variable=f, value='JPEG')
 f_jpeg.pack(side=TOP, anchor=W)
-f_png = Radiobutton(master, text='PNG', variable=f, value='PNG')
+f_png = Radiobutton(main, text='PNG', variable=f, value='PNG')
 f_png.pack(side=TOP, anchor=W)
 operation = StringVar()
 operation.set('Choisir une opération à réaliser')
-OptionMenu(master, operation,
+OptionMenu(main, operation,
            'Conversion en niveaux de gris',
            'Détection des contours',
            'Négatif',
@@ -306,14 +321,14 @@ OptionMenu(master, operation,
            'Stéganographie (décodage)').pack()
 
 
-accept = Button(master, text='Valider', command=check_settings)
+accept = Button(main, text='Valider', command=check_settings)
 base = IntVar()
 base.set(2)
 encoding_select = []
-encoding_select.append(Label(master, text='Merci de choisir un base numérique pour l\'encodage:'))
-encoding_select.append(Radiobutton(master, text='Binaire', variable=base, value=2))
-encoding_select.append(Radiobutton(master, text='Base 4', variable=base, value=4))
-encoding_select.append(Radiobutton(master, text='Hexadécimal', variable=base, value=16))
+encoding_select.append(Label(main, text='Merci de choisir un base numérique pour l\'encodage:'))
+encoding_select.append(Radiobutton(main, text='Binaire', variable=base, value=2))
+encoding_select.append(Radiobutton(main, text='Base 4', variable=base, value=4))
+encoding_select.append(Radiobutton(main, text='Hexadécimal', variable=base, value=16))
 
 def if_steg():    
     accept.pack(anchor=S)
