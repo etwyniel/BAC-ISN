@@ -242,7 +242,7 @@ def negative(file, f='PNG'):
     return image
 
 
-def check_settings():
+def check_settings(*ignore):
     file = filename.get()
     if file == '':
         if not err_message.winfo_ismapped():
@@ -303,6 +303,7 @@ master.title('BERBAECA')
 title = Label(main, text='Nom du fichier:').pack(anchor=N)
 filename = StringVar()
 filename_field = Entry(main, textvariable=filename, width=50)
+filename_field.bind('<Return>', check_settings)
 filename_field.pack(side=TOP, anchor=N)
 
 Label(main, text='Format de sortie:').pack(side=TOP, anchor=W)
