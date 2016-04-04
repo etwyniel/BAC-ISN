@@ -287,7 +287,7 @@ def start_op():
         err_message.pack()
         message.pack_forget()
     accept.config(state=NORMAL)
-    im.show()
+    if im != None: im.show()
         
     
 
