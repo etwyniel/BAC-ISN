@@ -279,15 +279,17 @@ def start_op():
         message.config(text='Fini')
         filename_field.delete(0, 'end')
         filename_field.insert(0, '')
+        accept.config(state=NORMAL)
+        im.show()
     except FileNotFoundError:
         err_message.pack()
         message.pack_forget()
+        accept.config(state=NORMAL)
     except InvalidEncoding:
         err_message.config(text='Encodage invalide.')
         err_message.pack()
         message.pack_forget()
-    accept.config(state=NORMAL)
-    if im != None: im.show()
+        accept.config(state=NORMAL)
         
     
 
