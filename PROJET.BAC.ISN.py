@@ -1,6 +1,6 @@
 #Début du programme
 
-#On déclare tous les commandes dont on aura besoin, et qui ne sont pas dans le python de base :
+#On déclare tous les commandes dont on aura besoin, et qui ne sont pas dans le language python de base :
 from random import randrange
 #Pour générer des nombres aléatoires plus efficacement. 
 from time import sleep
