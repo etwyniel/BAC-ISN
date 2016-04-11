@@ -19,11 +19,19 @@ import sys
 
 
 class InvalidEncoding(Exception):
+    """
+    Erreur qui est levée si l'encodage demandé n'est pas valide.
+    """
+    
     pass
 
 #On définit ici une commande essentielle qu'on utilisera plus loin :
 def base4(n):
-    n = int(n)
+    """
+    Cette fonction convertit un entier en base 10 en entier en base 4.
+    """
+    
+    n = int(n) #Dans le cas où n n'est pas un entier.
     x = ''
     while n > 0:
         x = str(n % 4) + x
@@ -31,44 +39,62 @@ def base4(n):
     return x
 
 def image_to_list(file, base=16):
-    image = Image.open(file, 'r')
-    dim = image.size
-    data = image.getdata()
-    image.close()
-    values = []
+    """
+    Cette fonction lit un fichier image et renvoie une liste contenant les
+    valeurs dans la base spécifiée.
+    """
+    
+    image = Image.open(file, 'r') #On utilise l'objet image de PIL
+    dim = image.size #On stocke les dimensions de l'image
+    data = image.getdata() #On récupère les valeurs de l'image
+    image.close() #On ferme l'image pour éviter la perte de données
+    
+    values = [] #On initialise une variable qui va contenir les variables encodées
     for line in range(dim[1]):
         for column in range(dim[0]):
-            for p in range(3):
-                if base == 16:
-                    val = hex(data[column+line*dim[0]][p])[2:]
-                    values.append('0'*(2-len(val)) + val)
+            for p in range(3):    #Pour chaque valeur de chaque pixel de chaque ligne:
+                
+                if base == 16: #On vérifie le paramètre base
+                    val = hex(data[column+line*dim[0]][p])[2:] #On convertit la valeur en hexadécimal
+                    values.append('0'*(2-len(val)) + val) #On complète avec des 0 pour que la chaîne ait une longueur de 2
+                    
                 elif base == 10:
-                    values.append(data[column+line*dim[0]][p])
+                    values.append(data[column+line*dim[0]][p]) #On ajoute la valeur à la fin de values
+                    
                 elif base == 4:
-                    val = base4(data[column+line*dim[0]][p])
-                    values.append('0'*(4-len(val)) + val)
+                    val = base4(data[column+line*dim[0]][p]) #On convertit la valeur en base 4
+                    values.append('0'*(4-len(val)) + val) #On complète avec des 0 pour que la chaîne ait une longueur de 4
+                    
                 elif base == 2:
-                    val = bin(data[column+line*dim[0]][p])[2:]
-                    values.append('0'*(8-len(val)) + val)
-    return dim, values
+                    val = bin(data[column+line*dim[0]][p])[2:] #On convertit la valeur en binaire
+                    values.append('0'*(8-len(val)) + val) #On complète avec des 0 pour que la chaîne ait une longueur de 8
+                    
+    return dim, values #On renvoie les dimensions et les valeurs dans un tuple
 
 def gray_levels(file, f='PNG'):
-    dim, pixels = image_to_list(file, 10)
-    values = []
+    """
+    Cette fonction convertit une image fournie et la convertit en niveaux de gris.
+    """
+    
+    dim, pixels = image_to_list(file, 10) #On récupère les dimensions et les valeurs du fichier.
+    
+    #On vérifie le paramètre f (le format de sortie demandé) et on en déduit l'extension que le fichier doit avoir
     if f == 'JPEG':
         ext = 'jpg'
     elif f == 'PNG':
         ext = 'png'
-    new_filename = file.split('.')[0] + ' - gray.' + ext
+        
+    new_filename = file.split('.')[0] + ' - gray.' + ext #On crée le nom du fichier de sortie
 
-    for x in range(0, len(pixels), 3):
-        new_color = int(sum(pixels[x:x+3]) / 3)
+    values = [] #On initialise une variable qui va contenir les valeurs traitées
+    for x in range(0, len(pixels), 3): #Pour chaque pixel:
+        new_color = int(sum(pixels[x:x+3]) / 3)  #On fait la moyenne des trois valeurs
         new_pixel = new_color, new_color, new_color
-        values += [new_pixel]
+        values += [new_pixel] #On ajoute la valeur trois fois à la fin du tableau de valeurs
             
-    image = Image.new('RGB', dim)
-    image.putdata(values)
-    image.save('D:/' + new_filename, f)
+    image = Image.new('RGB', dim) #On crée un nouvel objet image de PIL des mêmes dimensions que l'image fournie
+    image.putdata(values) #On stocke les valeurs traitées dans le nouvel objet
+    image.save('D:/' + new_filename, f) #On sauvegarde le nouveau fichier
     return image
 
 def outline(file, f='PNG'):
