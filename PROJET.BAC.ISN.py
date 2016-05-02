@@ -320,25 +320,32 @@ def start_op():
     
 
 master = Tk()
+master.title('BERBAECA')
+
 main = Frame(master)
 main.pack(padx=10, pady=2)
+
 message = Label(main)
+
 err_message = Label(main, text='Merci d\'entrer un nom valide')
 no_op = Label(main, text='Merci de choisir une opération')
-master.title('BERBAECA')
 title = Label(main, text='Nom du fichier:').pack(anchor=N)
+
 filename = StringVar()
 filename_field = Entry(main, textvariable=filename, width=50)
 filename_field.bind('<Return>', check_settings)
 filename_field.pack(side=TOP, anchor=N)
 
 Label(main, text='Format de sortie:').pack(side=TOP, anchor=W)
+
 f = StringVar()
 f.set('PNG')
+
 f_jpeg = Radiobutton(main, text='JPEG', variable=f, value='JPEG')
 f_jpeg.pack(side=TOP, anchor=W)
 f_png = Radiobutton(main, text='PNG', variable=f, value='PNG')
 f_png.pack(side=TOP, anchor=W)
+
 operation = StringVar()
 operation.set('Choisir une opération à réaliser')
 OptionMenu(main, operation,
@@ -351,9 +358,10 @@ OptionMenu(main, operation,
 
 
 accept = Button(main, text='Valider', command=check_settings)
+
 base = IntVar()
 base.set(2)
-encoding_select = []
+encoding_select = [] #Liste qui contient les différents boutons d'encodage
 encoding_select.append(Label(main, text='Merci de choisir un base numérique pour l\'encodage:'))
 encoding_select.append(Radiobutton(main, text='Binaire', variable=base, value=2))
 encoding_select.append(Radiobutton(main, text='Base 4', variable=base, value=4))
