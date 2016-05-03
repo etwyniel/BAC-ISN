@@ -113,10 +113,10 @@ def outline(file, f='PNG'):
             if w in [0, dim[0] - 1] or h in [0, dim[1] - 1]:
                 new_pixel = 255
             else:
-                new_pixel = 255 * (8 * pixels[h * dim[0] * 3 + w * 3] - sum([
-                    pixels[(h-1) * dim[0] * 3 + w * 3],
-                    pixels[(h+1) * dim[0] * 3 + w * 3],
-                    pixels[h * dim[0] * 3 + (w - 1) * 3],
+                new_pixel = 255 * (8 * pixels[h * dim[0] * 3 + w * 3] - sum([   #On applique un filtre à chaque pixel
+                    pixels[(h-1) * dim[0] * 3 + w * 3],                         #La valeur du nouveau pixel va dépendre de ceux
+                    pixels[(h+1) * dim[0] * 3 + w * 3],                         #qui se trouvent autour.
+                    pixels[h * dim[0] * 3 + (w - 1) * 3],                       #Les bords de l'image restent donc blancs.
                     pixels[h * dim[0] * 3 + (w - 1) * 3],
                     pixels[(h-1) * dim[0] * 3 + (w - 1) * 3],
                     pixels[(h-1) * dim[0] * 3 + (w + 1) * 3],
@@ -318,9 +318,9 @@ def start_op():
         accept.config(state=NORMAL)
         
     
-
+#Fenêtre principale de l'interface
 master = Tk()
-master.title('BERBAECA')
+master.title('BERBAECA Image Edition Software')
 
 main = Frame(master)
 main.pack(padx=10, pady=2)
@@ -367,9 +367,13 @@ encoding_select.append(Radiobutton(main, text='Binaire', variable=base, value=2)
 encoding_select.append(Radiobutton(main, text='Base 4', variable=base, value=4))
 encoding_select.append(Radiobutton(main, text='Hexadécimal', variable=base, value=16))
 
-def if_steg():    
+def if_steg():
+"""
+Fonction qui permet d'afficher ou d'effacer les options de stéganographie, selon l'opération choisie.
+Cette fonction doit être lancée dans un thread à part.
+"""   
     accept.pack(anchor=S)
-    selected = False
+    selected = False #Bool qui permet de savoir si l'opération choisie est une stéganographie
     while not master.stop:
         if operation.get().startswith('Stéganographie') and not selected:
             f_jpeg.config(state=DISABLED)
@@ -392,7 +396,7 @@ setattr(master, 'stop', False)
 steg = Thread(target=if_steg, daemon=True)
 steg.start()
 
-
 mainloop()
-setattr(master, 'stop', True)
+
+setattr(master, 'stop', True) #Ceci donne au thread steg l'information que le programme a été arrêté
 sys.exit(1)
