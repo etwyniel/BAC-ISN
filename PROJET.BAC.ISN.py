@@ -98,6 +98,9 @@ def gray_levels(file, f='PNG'):
     return image
 
 def outline(file, f='PNG'):
+    """
+    Cette fonction détecte les contours d'une image fournie en nuances de gris, et renvoie une image en noir et blanc.
+    """
     dim, pixels = image_to_list(file, 10)
 
     if f == 'JPEG':
@@ -133,6 +136,9 @@ def outline(file, f='PNG'):
     return image
 
 def embossage(file, f='PNG'):
+    """
+    Cette fonction applique un filtre à l'image fournie, pour donner un impression de relief en nuances de gris sur fond noir (image de sortie en nuances de gris).
+    """
     dim, pixels = image_to_list(file, 10)
 
     #On crée un nouveau fichier dans lequel on écrit l'en-tête
@@ -168,6 +174,10 @@ def embossage(file, f='PNG'):
 
 
 def steg_encode(file, base=16):
+    """
+    Cette fonction permet de générer une image aléatoire dans laquelle est dissimulée en stéganographie l'image fournie.
+    Il y a trois niveaux de dissimulation disponibles: 1/16 (hexa), 1/64 (base 4), 1/256 (binaire)
+    """
     dim, pixels = image_to_list(file, base)
 
     #On crée un nouveau fichier dans lequel on écrit l'en-tête
@@ -206,6 +216,9 @@ def steg_encode(file, base=16):
 
 
 def steg_decode(file, base=16):
+    """
+    Cette fonction sert à décoder une image stéganographiée. En spécifiant l'encodage utilisé pour créér l'image stéganographiée, on récupère l'image d'origine sans altération.
+    """
     dim, pixels = image_to_list(file, base)
 
     #On crée un nouveau fichier dans lequel on écrit l'en-tête
@@ -246,6 +259,9 @@ def steg_decode(file, base=16):
     
 
 def negative(file, f='PNG'):
+    """
+    Cette fonction renvoie un négatif de l'image fournie, en faisant 255 - x pour chaque couleur de chaque pixel, où x est l'intensité d'une couleur.
+    """
     dim, pixels = image_to_list(file, 10)
     
     if f == 'JPEG':
@@ -269,6 +285,9 @@ def negative(file, f='PNG'):
 
 
 def check_settings(*ignore):
+    """
+    Cette fonction est exécutée avant de lancer une opération, afin de s'assurer que les paramètres choisis par l'utilisateur sont valides
+    """
     file = filename.get()
     if file == '':
         if not err_message.winfo_ismapped():
@@ -368,12 +387,12 @@ encoding_select.append(Radiobutton(main, text='Base 4', variable=base, value=4))
 encoding_select.append(Radiobutton(main, text='Hexadécimal', variable=base, value=16))
 
 def if_steg():
-"""
-Fonction qui permet d'afficher ou d'effacer les options de stéganographie, selon l'opération choisie.
-Cette fonction doit être lancée dans un thread à part.
-"""   
+    """
+    Fonction qui permet d'afficher ou d'effacer les options de stéganographie, selon l'opération choisie.
+    Cette fonction doit être lancée dans un thread à part.
+    """   
     accept.pack(anchor=S)
-    selected = False #Bool qui permet de savoir si l'opération choisie est une stéganographie
+    selected = False
     while not master.stop:
         if operation.get().startswith('Stéganographie') and not selected:
             f_jpeg.config(state=DISABLED)
